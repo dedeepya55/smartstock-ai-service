@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+ultralytics
+opencv-python-headless
+numpy
+pillow
+easyocr
+pytesseract
+pandas
+torch
