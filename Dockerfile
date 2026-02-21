@@ -13,6 +13,8 @@ RUN apt-get update && apt-get install -y \
 RUN pip install --upgrade pip
 RUN pip install -r requirements.txt
 
+# EXPOSE is optional on Render; can leave or remove
 EXPOSE 8000
 
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+# Use Render's PORT environment variable
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "${PORT}"]
