@@ -1,0 +1,20 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Virtual environments
+venv/
+.env/
+
+# Results & temp files
+results/
+temp_uploads/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
