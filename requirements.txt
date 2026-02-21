@@ -8,3 +8,4 @@ easyocr
 pytesseract
 pandas
 torch
+python-multipart
