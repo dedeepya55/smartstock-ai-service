@@ -5,12 +5,19 @@ import os
 import subprocess
 import uuid
 
+from fastapi.staticfiles import StaticFiles
+
 app = FastAPI()
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 UPLOAD_DIR = os.path.join(BASE_DIR, "temp_uploads")
 
+OUTPUT_DIR = os.path.join(BASE_DIR, "SMARTSTOCKAI-AI", "output_results")
+
 os.makedirs(UPLOAD_DIR, exist_ok=True)
+
+
+app.mount("/outputs", StaticFiles(directory=OUTPUT_DIR), name="outputs")
 
 
 # ===============================
