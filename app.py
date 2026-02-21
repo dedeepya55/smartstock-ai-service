@@ -1,91 +1,32 @@
-from fastapi import FastAPI, UploadFile, File
-from fastapi.responses import JSONResponse
-import shutil
-import os
-import subprocess
-import uuid
+FROM python:3.10-slim
 
-app = FastAPI()
+WORKDIR /app
 
-BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-UPLOAD_DIR = os.path.join(BASE_DIR, "temp_uploads")
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
 
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+# System dependencies
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        build-essential \
+        git \
+        wget \
+        libgl1 \
+        libglib2.0-0 \
+        tesseract-ocr \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
+# Copy dependencies and install
+COPY requirements.txt .
+RUN pip install --no-cache-dir --upgrade pip && \
+    pip install --no-cache-dir torch==2.10.0+cpu torchvision==0.25.0+cpu torchaudio==2.10.0+cpu --index-url https://download.pytorch.org/whl/cpu && \
+    pip install --no-cache-dir -r requirements.txt
 
-# ===============================
-# ARRANGEMENT CHECK ENDPOINT
-# ===============================
-@app.post("/arrangement")
-async def check_arrangement(file: UploadFile = File(...)):
-    try:
-        file_id = str(uuid.uuid4())
-        image_path = os.path.join(UPLOAD_DIR, f"{file_id}.jpg")
+# Copy app code
+COPY . .
 
-        with open(image_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
+# Expose port
+EXPOSE 8000
 
-        script_path = os.path.join(
-            BASE_DIR,
-            "SMARTSTOCK_AI2",
-            "run_full_pipeline.py"
-        )
-
-        result = subprocess.run(
-            ["python", script_path, "--image", image_path],
-            capture_output=True,
-            text=True
-        )
-
-        if result.returncode != 0:
-            return JSONResponse(
-                status_code=500,
-                content={"error": result.stderr}
-            )
-
-        return {"message": "Arrangement check completed"}
-
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content={"error": str(e)}
-        )
-
-
-# ===============================
-# DEFECT CHECK ENDPOINT
-# ===============================
-@app.post("/defect")
-async def check_defect(file: UploadFile = File(...)):
-    try:
-        file_id = str(uuid.uuid4())
-        image_path = os.path.join(UPLOAD_DIR, f"{file_id}.jpg")
-
-        with open(image_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-
-        script_path = os.path.join(
-            BASE_DIR,
-            "SMARTSTOCKAI-AI",
-            "infer.py"
-        )
-
-        result = subprocess.run(
-            ["python", script_path, image_path],
-            capture_output=True,
-            text=True
-        )
-
-        if result.returncode != 0:
-            return JSONResponse(
-                status_code=500,
-                content={"error": result.stderr}
-            )
-
-        return JSONResponse(content={"response": result.stdout})
-
-    except Exception as e:
-        return JSONResponse(
-            status_code=500,
-            content={"error": str(e)}
-        )
+# Run FastAPI
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
