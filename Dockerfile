@@ -14,12 +14,12 @@ RUN apt-get update && \
         build-essential \
         git \
         wget \
-        libgl1-mesa-glx \
+        libgl1 \
         libglib2.0-0 \
         tesseract-ocr \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-
+    
 # Copy dependency files first for caching
 COPY requirements.txt .
 
