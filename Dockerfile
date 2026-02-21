@@ -1,20 +1,24 @@
+# Use a slim Python image
 FROM python:3.10-slim
 
+# Set working directory
 WORKDIR /app
 
+# Copy requirements first (for caching)
+COPY requirements.txt .
+
+# Upgrade pip
+RUN pip install --no-cache-dir --upgrade pip
+
+# Install CPU-only PyTorch
+RUN pip install --no-cache-dir torch torchvision torchaudio --index-url https://download.pytorch.org/whl/cpu
+
+# Install other dependencies from requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy your application code
 COPY . .
 
-RUN apt-get update && apt-get install -y \
-    libgl1 \
-    libglib2.0-0 \
-    tesseract-ocr \
-    && rm -rf /var/lib/apt/lists/*
-
-RUN pip install --upgrade pip
-RUN pip install -r requirements.txt
-
-# EXPOSE is optional on Render; can leave or remove
-EXPOSE 8000
-
-# Use Render's PORT environment variable
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "${PORT}"]
+# Set Render dynamic PORT
+ENV PORT 10000
+CMD uvicorn main:app --host 0.0.0.0 --port $PORT
