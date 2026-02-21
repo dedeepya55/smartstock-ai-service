@@ -38,10 +38,12 @@ output_image = os.path.join(
 
 cv2.imwrite(output_image, img)
 
+filename = "result_" + os.path.basename(image_path)
+
 response = {
     "status": "NOT_OK" if defective else "OK",
     "message": "❌ Defective product detected" if defective else "✅ Product is OK",
-    "output_image_path": output_image
+    "output_image_path": f"/outputs/{filename}"
 }
 
 print(json.dumps(response))
